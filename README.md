@@ -15,15 +15,13 @@ CREATE TABLE students (
 );
 
 CREATE TABLE items (
-    item_id INT PRIMARY KEY AUTO_INCREMENT,
-    user_email VARCHAR(100) NOT NULL,
-    item_name VARCHAR(100) NOT NULL,
-    cost DECIMAL(10, 2) NOT NULL,
-    quantity INT NOT NULL,
-    image_path VARCHAR(255) NOT NULL,
-    campus VARCHAR(50) NOT NULL,
-    status VARCHAR(20) DEFAULT 'available',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    id INT(11) PRIMARY KEY AUTO_INCREMENT,
+    user_email VARCHAR(255) NOT NULL,
+    item_name VARCHAR(255) NOT NULL,
+    cost DECIMAL(10,2) NOT NULL,
+    quantity INT(11) NOT NULL,
+    image_path VARCHAR(255) NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    campus VARCHAR(50) NULL,
     FOREIGN KEY (user_email) REFERENCES users(email)
 );
