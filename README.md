@@ -36,3 +36,12 @@ CREATE TABLE orders (
     FOREIGN KEY (item_id) REFERENCES items(id)
 );
 
+CREATE TABLE reports (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    reported_user_id INT NOT NULL,
+    reporter_user_id INT NOT NULL,
+    comment TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (reported_user_id) REFERENCES students(id),
+    FOREIGN KEY (reporter_user_id) REFERENCES students(id)
+);
