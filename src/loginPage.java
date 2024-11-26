@@ -7,12 +7,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public class loginPage extends JFrame implements ActionListener {
-    private JButton loginButton, goBackButton;
-    private JTextField emailField;
-    private JPasswordField passwordField;
+    private final JButton loginButton;
+    private final JButton goBackButton;
+    private final JTextField emailField;
+    private final JPasswordField passwordField;
 
     public loginPage() {
-        setTitle("Login");
+        setTitle("Student Business System - LOGIN");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);

@@ -179,7 +179,7 @@ public class buy_Items extends JFrame implements ActionListener {
             container.add(imageLabel, gbc);
         }
 
-        JTextField buyQuantityField = new JTextField(10);
+        JTextField buyQuantityField = new JTextField("Enter quantity", 10);
         buyQuantityField.setFont(new Font("Arial", Font.PLAIN, 24));
         gbc.gridy = 6;
         gbc.gridwidth = 1;

@@ -83,7 +83,7 @@ public class Reports extends JFrame implements ActionListener {
 
                 String notificationText = String.format(
                         "<html>Reporter Email: %s<br>Reported Email: %s<br>Student ID: %s<br>Full Name: %s<br>Year Level: %s<br>TIP Branch: %s<br>Comment: %s<br>Reported on: %s</html>",
-                        reporterEmail, reportedEmail, studentId, fullName, yearLevel, tipBranch, breakIntoLines(comment, 50), reportTime
+                        reporterEmail, reportedEmail, studentId, fullName, yearLevel, tipBranch, breakIntoLines(comment), reportTime
                 );
 
                 if (row > 0) {
@@ -113,7 +113,7 @@ public class Reports extends JFrame implements ActionListener {
                 gbc.gridwidth = 1;
 
                 int reportId = rs.getInt("report_id");
-                resolvedButton.addActionListener(e -> resolveReport(reportId));
+                resolvedButton.addActionListener(_ -> resolveReport(reportId));
                 notificationPanel.add(resolvedButton, gbc);
 
                 row++;
@@ -127,19 +127,19 @@ public class Reports extends JFrame implements ActionListener {
         repaint();
     }
 
-    private String breakIntoLines(String text, int maxLineLength) {
+    private String breakIntoLines(String text) {
         StringBuilder formatted = new StringBuilder();
         int lineLength = 0;
 
         for (String word : text.split(" ")) {
-            if (lineLength + word.length() > maxLineLength) {
+            if (lineLength + word.length() > 50) {
                 formatted.append("<br>");
                 lineLength = 0;
             }
 
-            while (word.length() > maxLineLength) {
-                formatted.append(word, 0, maxLineLength).append("<br>");
-                word = word.substring(maxLineLength);
+            while (word.length() > 50) {
+                formatted.append(word, 0, 50).append("<br>");
+                word = word.substring(50);
             }
 
             formatted.append(word).append(" ");

@@ -5,12 +5,10 @@ import java.awt.event.ActionListener;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.Set;
 
 public class StudentDashboard extends JFrame implements ActionListener {
     private final JButton notificationsButton, sellItemsButton, buyItemsButton, checkSellingButton, profileSettingsButton, logoutButton;
-    private final JLabel userNameLabel;
-    private String userEmail;
+    private final String userEmail;
 
     public StudentDashboard(String userEmail) {
         this.userEmail = userEmail;
@@ -29,7 +27,7 @@ public class StudentDashboard extends JFrame implements ActionListener {
         add(titleLabel, BorderLayout.NORTH);
 
         String userFullName = fetchUserName(userEmail);
-        userNameLabel = new JLabel("Hello, " + userFullName, JLabel.CENTER);
+        JLabel userNameLabel = new JLabel("Hello, " + userFullName, JLabel.CENTER);
         userNameLabel.setFont(new Font("Arial", Font.PLAIN, 40));
         userNameLabel.setForeground(Color.WHITE);
         userNameLabel.setBounds(650, 250, 600, 40);

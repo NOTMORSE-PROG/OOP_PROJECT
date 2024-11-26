@@ -236,7 +236,7 @@ public class Setting extends JFrame implements ActionListener {
 
                     String deleteOrdersSQL = """
                                             DELETE FROM orders
-                                            WHERE buyer_email = ? OR item_id IN (SELECT id FROM items WHERE user_email = ?) """;
+                                            WHERE buyer_email = ? OR item_id IN (SELECT id FROM items WHERE user_email = ?)""";
                     try (PreparedStatement pstmt = conn.prepareStatement(deleteOrdersSQL)) {
                         pstmt.setString(1, userEmail);
                         pstmt.setString(2, userEmail);

@@ -4,7 +4,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class indexFrame extends JFrame implements ActionListener {
-    private JButton registerButton, loginButton;
+    private final JButton registerButton;
+    private final JButton loginButton;
 
     public indexFrame() {
         setTitle("STUDENT BUSINESS SYSTEM");
@@ -66,7 +67,4 @@ public class indexFrame extends JFrame implements ActionListener {
         }
     }
 
-    public static void main(String[] args) {
-        new indexFrame();
-    }
 }
