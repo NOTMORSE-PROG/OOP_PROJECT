@@ -36,6 +36,17 @@ CREATE TABLE orders (
     FOREIGN KEY (item_id) REFERENCES items(id)
 );
 
+CREATE TABLE order_details (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    pickup_date DATE NOT NULL,
+    payment_method VARCHAR(50),
+    payment_status ENUM('Unpaid', 'Paid') DEFAULT 'Unpaid',
+    e_wallet_provider VARCHAR(50),
+    e_wallet_number VARCHAR(50),
+    FOREIGN KEY (order_id) REFERENCES orders(id)
+);
+
 CREATE TABLE reports (
     id INT AUTO_INCREMENT PRIMARY KEY,
     reported_user_id INT NOT NULL,
