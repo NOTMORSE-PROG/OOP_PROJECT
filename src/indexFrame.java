@@ -4,15 +4,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class indexFrame extends JFrame implements ActionListener {
-    private JButton registerButton, loginButton;
+    private final JButton registerButton;
+    private final JButton loginButton;
 
     public indexFrame() {
-        setTitle("STUDENT BUSINESS SYSTEM");
+        setTitle("CAMPUS COMMERCE");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
-
         getContentPane().setBackground(Color.decode("#0F149a"));
 
         setLayout(new GridBagLayout());
@@ -21,7 +21,7 @@ public class indexFrame extends JFrame implements ActionListener {
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.CENTER;
 
-        JLabel titleLabel = new JLabel("STUDENT BUSINESS SYSTEM");
+        JLabel titleLabel = new JLabel("CAMPUS COMMERCE");
         titleLabel.setFont(new Font("Serif", Font.BOLD, 50));
         titleLabel.setForeground(Color.WHITE);
         gbc.gridx = 0;
@@ -67,7 +67,4 @@ public class indexFrame extends JFrame implements ActionListener {
         }
     }
 
-    public static void main(String[] args) {
-        new indexFrame();
-    }
 }

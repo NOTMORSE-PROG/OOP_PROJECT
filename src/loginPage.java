@@ -7,12 +7,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public class loginPage extends JFrame implements ActionListener {
-    private JButton loginButton, goBackButton;
-    private JTextField emailField;
-    private JPasswordField passwordField;
+    private final JButton loginButton;
+    private final JButton goBackButton;
+    private final JTextField emailField;
+    private final JPasswordField passwordField;
 
     public loginPage() {
-        setTitle("Login");
+        setTitle("CAMPUS COMMERCE - LOGIN");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -39,7 +40,7 @@ public class loginPage extends JFrame implements ActionListener {
         gbc.gridwidth = 1;
         add(goBackButton, gbc);
 
-        JLabel titleLabel = new JLabel("STUDENT BUSINESS SYSTEM - LOGIN");
+        JLabel titleLabel = new JLabel("CAMPUS COMMERCE - LOGIN");
         titleLabel.setFont(new Font("Serif", Font.BOLD, 50));
         titleLabel.setForeground(Color.WHITE);
         gbc.gridx = 0;
@@ -99,8 +100,8 @@ public class loginPage extends JFrame implements ActionListener {
 
             if (email.equals("admin") && password.equals("admin")) {
                 JOptionPane.showMessageDialog(this, "Admin login successful!");
-                new AdminPage();
-                dispose();
+                this.dispose();
+                new AdminDashboard();
                 return;
             }
 

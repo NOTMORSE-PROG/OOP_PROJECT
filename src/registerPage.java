@@ -3,7 +3,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Connection;
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
@@ -11,10 +10,11 @@ public class registerPage extends JFrame implements ActionListener {
     private final JTextField lastNameField, firstNameField, middleNameField, studentIdField, emailField;
     private final JPasswordField passwordField, confirmPasswordField;
     private final JComboBox<String> yearLevelComboBox, branchComboBox;
+    private final JButton backButton;
 
 
     public registerPage() {
-        setTitle("Student Business System - Register");
+        setTitle("CAMPUS COMMERCE - Register");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -22,27 +22,11 @@ public class registerPage extends JFrame implements ActionListener {
         getContentPane().setBackground(Color.decode("#0F149a"));
         setLayout(new BorderLayout());
 
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setBackground(Color.decode("#0F149a"));
-
-        JButton backButton = new JButton("Go Back");
-        backButton.setBounds(564, 140, 200, 40);
-        backButton.setFont(new Font("Arial", Font.BOLD, 30));
-        backButton.setBackground(Color.decode("#fd9b4d"));
-        backButton.addActionListener(e -> {
-            dispose();
-            new indexFrame();
-        });
-        add(backButton);
-
-        JLabel titleLabel = new JLabel("STUDENT BUSINESS SYSTEM - REGISTER");
-        titleLabel.setBounds(470, 180, 1000, 50);
+        JLabel titleLabel = new JLabel("CAMPUS COMMERCE - REGISTER");
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 40));
         titleLabel.setForeground(Color.WHITE);
-        add(titleLabel);
-
-        add(topPanel, BorderLayout.NORTH);
+        add(titleLabel, BorderLayout.NORTH);
 
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBackground(Color.decode("#0F149a"));
@@ -174,6 +158,18 @@ public class registerPage extends JFrame implements ActionListener {
         formPanel.add(submitButton, gbc);
 
         add(formPanel, BorderLayout.CENTER);
+
+        backButton = new JButton("Go Back");
+        backButton.setFont(new Font("Arial", Font.BOLD, 30));
+        backButton.setBackground(Color.decode("#fd9b4d"));
+        backButton.addActionListener(this);
+
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setBackground(Color.decode("#0F149a"));
+        bottomPanel.add(backButton);
+
+        add(bottomPanel, BorderLayout.SOUTH);
+
         setVisible(true);
     }
 
@@ -190,19 +186,30 @@ public class registerPage extends JFrame implements ActionListener {
         String password = new String(passwordField.getPassword());
         String confirmPassword = new String(confirmPasswordField.getPassword());
 
+        if (e.getSource() == backButton) {
+            dispose();
+            new indexFrame();
+            return;
+        }
+
         if (lastName.isEmpty() || firstName.isEmpty() || studentId.isEmpty() || email.isEmpty() ||
                 yearLevel == null || branch == null || password.isEmpty() || confirmPassword.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please fill in all required fields.");
             return;
         }
 
-        if (!studentId.matches("\\d{6}")) {
-            JOptionPane.showMessageDialog(this, "Invalid Student ID. It must be 6 digits.");
+        if (!studentId.matches("\\d{7}")) {
+            JOptionPane.showMessageDialog(this, "Invalid Student ID. It must be 7 digits.");
             return;
         }
 
         if (!email.matches("^[^@]+@tip\\.edu\\.ph$")) {
             JOptionPane.showMessageDialog(this, "Invalid email. It must be a valid @tip.edu.ph email.");
+            return;
+        }
+
+        if (password.length() < 8 || password.length() > 16) {
+            JOptionPane.showMessageDialog(this, "Password must be between 8 and 16 characters.");
             return;
         }
 

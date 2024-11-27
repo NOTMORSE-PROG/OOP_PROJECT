@@ -8,9 +8,11 @@ import java.sql.ResultSet;
 
 public class StudentDashboard extends JFrame implements ActionListener {
     private final JButton notificationsButton, sellItemsButton, buyItemsButton, checkSellingButton, profileSettingsButton, logoutButton;
-    private final JLabel userNameLabel;
+    private final String userEmail;
 
     public StudentDashboard(String userEmail) {
+        this.userEmail = userEmail;
+
         setTitle("Student Dashboard");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -19,50 +21,49 @@ public class StudentDashboard extends JFrame implements ActionListener {
         getContentPane().setBackground(Color.decode("#0F149a"));
         setLayout(new BorderLayout());
 
-        JLabel titleLabel = new JLabel("STUDENT BUSINESS MANAGEMENT SYSTEM", JLabel.CENTER);
+        JLabel titleLabel = new JLabel("CAMPUS COMMERCE", JLabel.CENTER);
         titleLabel.setFont(new Font("Serif", Font.BOLD, 50));
         titleLabel.setForeground(Color.WHITE);
         add(titleLabel, BorderLayout.NORTH);
 
         String userFullName = fetchUserName(userEmail);
-        userNameLabel = new JLabel("Hello, " + userFullName, JLabel.CENTER);
+        JLabel userNameLabel = new JLabel("Hello, " + userFullName, JLabel.CENTER);
         userNameLabel.setFont(new Font("Arial", Font.PLAIN, 40));
         userNameLabel.setForeground(Color.WHITE);
-        userNameLabel.setBounds(650, 250, 600, 40);
-        add(userNameLabel);
-
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new GridBagLayout());
         buttonPanel.setBackground(Color.decode("#0F149a"));
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Add padding
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.insets = new Insets(10, 10, 10, 10);
+        buttonPanel.add(userNameLabel, gbc);
+
+        gbc.gridy = 1;
         notificationsButton = createButton("Notifications");
         buttonPanel.add(notificationsButton, gbc);
 
-        gbc.gridy = 1;
+        gbc.gridy = 2;
         sellItemsButton = createButton("Sell Items");
         buttonPanel.add(sellItemsButton, gbc);
 
-        gbc.gridy = 2;
+        gbc.gridy = 3;
         buyItemsButton = createButton("Buy Items");
         buttonPanel.add(buyItemsButton, gbc);
 
-        gbc.gridy = 3;
+        gbc.gridy = 4;
         checkSellingButton = createButton("Check Your Selling Items");
         buttonPanel.add(checkSellingButton, gbc);
 
-        gbc.gridy = 4;
+        gbc.gridy = 5;
         profileSettingsButton = createButton("Profile Settings");
         buttonPanel.add(profileSettingsButton, gbc);
 
         add(buttonPanel, BorderLayout.CENTER);
 
-        // Logout Button
         logoutButton = new JButton("Logout");
         logoutButton.setFont(new Font("Arial", Font.PLAIN, 30));
         logoutButton.setPreferredSize(new Dimension(200, 50));
@@ -95,15 +96,20 @@ public class StudentDashboard extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == notificationsButton) {
-            JOptionPane.showMessageDialog(this, "Notifications clicked.");
+            this.dispose();
+            new Notifications(userEmail);
         } else if (e.getSource() == sellItemsButton) {
-            JOptionPane.showMessageDialog(this, "Sell Items clicked.");
+            this.dispose();
+            new sell_Items(userEmail);
         } else if (e.getSource() == buyItemsButton) {
-            JOptionPane.showMessageDialog(this, "Buy Items clicked.");
+            this.dispose();
+            new buy_Items(userEmail);
         } else if (e.getSource() == checkSellingButton) {
-            JOptionPane.showMessageDialog(this, "Check Your Selling Items clicked.");
+            this.dispose();
+            new student_Items(userEmail);
         } else if (e.getSource() == profileSettingsButton) {
-            JOptionPane.showMessageDialog(this, "Profile Settings clicked.");
+            this.dispose();
+            new Setting(userEmail);
         } else if (e.getSource() == logoutButton) {
             JOptionPane.showMessageDialog(this, "Logging out...");
             this.dispose();
@@ -129,8 +135,8 @@ public class StudentDashboard extends JFrame implements ActionListener {
                         ? middleName.substring(0, 1).toUpperCase() + "."
                         : "";
                 fullName = firstName.substring(0, 1).toUpperCase() + firstName.substring(1) + " " +
-                        middleInitial + " " +
-                        lastName.substring(0, 1).toUpperCase() + lastName.substring(1);
+                           middleInitial + " " +
+                           lastName.substring(0, 1).toUpperCase() + lastName.substring(1);
             }
             conn.close();
         } catch (Exception ex) {
