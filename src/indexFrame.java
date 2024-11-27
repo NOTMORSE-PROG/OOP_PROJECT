@@ -8,7 +8,7 @@ public class indexFrame extends JFrame implements ActionListener {
     private final JButton loginButton;
 
     public indexFrame() {
-        setTitle("STUDENT BUSINESS SYSTEM");
+        setTitle("CAMPUS COMMERCE");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -21,7 +21,7 @@ public class indexFrame extends JFrame implements ActionListener {
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.CENTER;
 
-        JLabel titleLabel = new JLabel("STUDENT BUSINESS SYSTEM");
+        JLabel titleLabel = new JLabel("CAMPUS COMMERCE");
         titleLabel.setFont(new Font("Serif", Font.BOLD, 50));
         titleLabel.setForeground(Color.WHITE);
         gbc.gridx = 0;

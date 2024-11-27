@@ -13,7 +13,7 @@ public class loginPage extends JFrame implements ActionListener {
     private final JPasswordField passwordField;
 
     public loginPage() {
-        setTitle("Student Business System - LOGIN");
+        setTitle("CAMPUS COMMERCE - LOGIN");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -40,7 +40,7 @@ public class loginPage extends JFrame implements ActionListener {
         gbc.gridwidth = 1;
         add(goBackButton, gbc);
 
-        JLabel titleLabel = new JLabel("STUDENT BUSINESS SYSTEM - LOGIN");
+        JLabel titleLabel = new JLabel("CAMPUS COMMERCE - LOGIN");
         titleLabel.setFont(new Font("Serif", Font.BOLD, 50));
         titleLabel.setForeground(Color.WHITE);
         gbc.gridx = 0;

@@ -21,7 +21,7 @@ public class StudentDashboard extends JFrame implements ActionListener {
         getContentPane().setBackground(Color.decode("#0F149a"));
         setLayout(new BorderLayout());
 
-        JLabel titleLabel = new JLabel("STUDENT BUSINESS MANAGEMENT SYSTEM", JLabel.CENTER);
+        JLabel titleLabel = new JLabel("CAMPUS COMMERCE", JLabel.CENTER);
         titleLabel.setFont(new Font("Serif", Font.BOLD, 50));
         titleLabel.setForeground(Color.WHITE);
         add(titleLabel, BorderLayout.NORTH);

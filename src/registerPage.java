@@ -14,7 +14,7 @@ public class registerPage extends JFrame implements ActionListener {
 
 
     public registerPage() {
-        setTitle("Student Business System - Register");
+        setTitle("CAMPUS COMMERCE - Register");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -22,7 +22,7 @@ public class registerPage extends JFrame implements ActionListener {
         getContentPane().setBackground(Color.decode("#0F149a"));
         setLayout(new BorderLayout());
 
-        JLabel titleLabel = new JLabel("STUDENT BUSINESS SYSTEM - REGISTER");
+        JLabel titleLabel = new JLabel("CAMPUS COMMERCE - REGISTER");
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 40));
         titleLabel.setForeground(Color.WHITE);
