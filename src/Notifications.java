@@ -53,20 +53,22 @@ public class Notifications extends JFrame implements ActionListener {
 
         try (Connection conn = DBConnector.getConnection()) {
             String orderSql = """
-            SELECT o.id AS order_id, s.student_email AS buyer_email,
-                   i.item_name, i.quantity AS stock_left,
-                   o.quantity AS quantity_bought, o.created_at AS order_time
-            FROM orders o
-            JOIN students s ON o.buyer_email = s.student_email
-            JOIN items i ON o.item_id = i.id
-            WHERE i.user_email = ?;
-            """;
+        SELECT o.id AS order_id, s.student_email AS buyer_email,
+               i.item_name, i.quantity AS stock_left,
+               o.quantity AS quantity_bought, o.created_at AS order_time,
+               od.payment_status, od.pickup_date
+        FROM orders o
+        JOIN students s ON o.buyer_email = s.student_email
+        JOIN items i ON o.item_id = i.id
+        LEFT JOIN order_details od ON o.id = od.order_id
+        WHERE i.user_email = ?;
+        """;
 
             String stockSql = """
-            SELECT id, item_name, quantity
-            FROM items
-            WHERE user_email = ? AND quantity = 0;
-            """;
+        SELECT id, item_name, quantity
+        FROM items
+        WHERE user_email = ? AND quantity = 0;
+        """;
 
             int row = 0;
 
@@ -81,10 +83,12 @@ public class Notifications extends JFrame implements ActionListener {
                 int stockLeft = rs.getInt("stock_left");
                 int quantityBought = rs.getInt("quantity_bought");
                 String orderTime = rs.getString("order_time");
+                String paymentStatus = rs.getString("payment_status");
+                String pickupDate = rs.getString("pickup_date");
 
                 String notificationText = String.format(
-                        "Buyer Email: %s\nBought %d of your item '%s'.\nStock Left: %d\nOrdered on: %s.\nPlease email the buyer for further contact.",
-                        buyerEmail, quantityBought, itemName, stockLeft, orderTime
+                        "Buyer Email: %s\nBought %d of your item '%s'.\nStock Left: %d\nOrdered on: %s\nPayment Status: %s\nPickup Date: %s\nPlease email the buyer for further contact.",
+                        buyerEmail, quantityBought, itemName, stockLeft, orderTime, paymentStatus, pickupDate
                 );
 
                 if (row > 0) {
@@ -179,7 +183,6 @@ public class Notifications extends JFrame implements ActionListener {
         repaint();
     }
 
-
     @Override
     public void actionPerformed(ActionEvent e) {
         JButton sourceButton = (JButton) e.getSource();
@@ -195,35 +198,39 @@ public class Notifications extends JFrame implements ActionListener {
 
     private void resolveNotification(int orderId, String itemName) {
         try (Connection conn = DBConnector.getConnection()) {
-            String sql = "DELETE FROM orders WHERE id = ?";
-            PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.setInt(1, orderId);
+            String deleteDetailsSql = "DELETE FROM order_details WHERE order_id = ?";
+            try (PreparedStatement pstmtDetails = conn.prepareStatement(deleteDetailsSql)) {
+                pstmtDetails.setInt(1, orderId);
+                pstmtDetails.executeUpdate();
+            }
 
-            int rowsAffected = pstmt.executeUpdate();
-            if (rowsAffected > 0) {
-                for (Component comp : notificationPanel.getComponents()) {
-                    if (comp instanceof JButton) {
-                        JButton resolvedButton = (JButton) comp;
-                        if (resolvedButton.getClientProperty("orderId") != null
+            String deleteOrderSql = "DELETE FROM orders WHERE id = ?";
+            try (PreparedStatement pstmtOrder = conn.prepareStatement(deleteOrderSql)) {
+                pstmtOrder.setInt(1, orderId);
+
+                int rowsAffected = pstmtOrder.executeUpdate();
+                if (rowsAffected > 0) {
+                    for (Component comp : notificationPanel.getComponents()) {
+                        if (comp instanceof JButton resolvedButton) {
+                            if (resolvedButton.getClientProperty("orderId") != null
                                 && (int) resolvedButton.getClientProperty("orderId") == orderId) {
-                            Component label = notificationPanel.getComponent(notificationPanel.getComponentZOrder(resolvedButton) - 1);
-                            notificationPanel.remove(label);
-                            notificationPanel.remove(resolvedButton);
-                            break;
+                                Component label = notificationPanel.getComponent(notificationPanel.getComponentZOrder(resolvedButton) - 1);
+                                notificationPanel.remove(label);
+                                notificationPanel.remove(resolvedButton);
+                                break;
+                            }
                         }
                     }
+                    notificationPanel.revalidate();
+                    notificationPanel.repaint();
+                    JOptionPane.showMessageDialog(this, "Notification for item '" + itemName + "' resolved!");
+                } else {
+                    JOptionPane.showMessageDialog(this, "No matching order found to resolve. It may have been already handled.");
                 }
-                notificationPanel.revalidate();
-                notificationPanel.repaint();
-                JOptionPane.showMessageDialog(this, "Notification for item '" + itemName + "' resolved!");
-            } else {
-                JOptionPane.showMessageDialog(this, "No matching order found to resolve. It may have been already handled.");
             }
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error resolving notification: " + e.getMessage());
         }
     }
-
-
 }

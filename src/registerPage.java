@@ -22,24 +22,11 @@ public class registerPage extends JFrame implements ActionListener {
         getContentPane().setBackground(Color.decode("#0F149a"));
         setLayout(new BorderLayout());
 
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setBackground(Color.decode("#0F149a"));
-
-        backButton = new JButton("Go Back");
-        backButton.setBounds(564, 140, 200, 40);
-        backButton.setFont(new Font("Arial", Font.BOLD, 30));
-        backButton.setBackground(Color.decode("#fd9b4d"));
-        backButton.addActionListener(this);
-        add(backButton);
-
         JLabel titleLabel = new JLabel("STUDENT BUSINESS SYSTEM - REGISTER");
-        titleLabel.setBounds(470, 180, 1000, 50);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 40));
         titleLabel.setForeground(Color.WHITE);
-        add(titleLabel);
-
-        add(topPanel, BorderLayout.NORTH);
+        add(titleLabel, BorderLayout.NORTH);
 
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBackground(Color.decode("#0F149a"));
@@ -171,6 +158,18 @@ public class registerPage extends JFrame implements ActionListener {
         formPanel.add(submitButton, gbc);
 
         add(formPanel, BorderLayout.CENTER);
+
+        backButton = new JButton("Go Back");
+        backButton.setFont(new Font("Arial", Font.BOLD, 30));
+        backButton.setBackground(Color.decode("#fd9b4d"));
+        backButton.addActionListener(this);
+
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setBackground(Color.decode("#0F149a"));
+        bottomPanel.add(backButton);
+
+        add(bottomPanel, BorderLayout.SOUTH);
+
         setVisible(true);
     }
 
@@ -206,6 +205,11 @@ public class registerPage extends JFrame implements ActionListener {
 
         if (!email.matches("^[^@]+@tip\\.edu\\.ph$")) {
             JOptionPane.showMessageDialog(this, "Invalid email. It must be a valid @tip.edu.ph email.");
+            return;
+        }
+
+        if (password.length() < 8 || password.length() > 16) {
+            JOptionPane.showMessageDialog(this, "Password must be between 8 and 16 characters.");
             return;
         }
 

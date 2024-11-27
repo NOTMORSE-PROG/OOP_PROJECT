@@ -30,9 +30,6 @@ public class StudentDashboard extends JFrame implements ActionListener {
         JLabel userNameLabel = new JLabel("Hello, " + userFullName, JLabel.CENTER);
         userNameLabel.setFont(new Font("Arial", Font.PLAIN, 40));
         userNameLabel.setForeground(Color.WHITE);
-        userNameLabel.setBounds(650, 250, 600, 40);
-        add(userNameLabel);
-
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new GridBagLayout());
@@ -43,22 +40,25 @@ public class StudentDashboard extends JFrame implements ActionListener {
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.insets = new Insets(10, 10, 10, 10);
+        buttonPanel.add(userNameLabel, gbc);
+
+        gbc.gridy = 1;
         notificationsButton = createButton("Notifications");
         buttonPanel.add(notificationsButton, gbc);
 
-        gbc.gridy = 1;
+        gbc.gridy = 2;
         sellItemsButton = createButton("Sell Items");
         buttonPanel.add(sellItemsButton, gbc);
 
-        gbc.gridy = 2;
+        gbc.gridy = 3;
         buyItemsButton = createButton("Buy Items");
         buttonPanel.add(buyItemsButton, gbc);
 
-        gbc.gridy = 3;
+        gbc.gridy = 4;
         checkSellingButton = createButton("Check Your Selling Items");
         buttonPanel.add(checkSellingButton, gbc);
 
-        gbc.gridy = 4;
+        gbc.gridy = 5;
         profileSettingsButton = createButton("Profile Settings");
         buttonPanel.add(profileSettingsButton, gbc);
 
@@ -135,8 +135,8 @@ public class StudentDashboard extends JFrame implements ActionListener {
                         ? middleName.substring(0, 1).toUpperCase() + "."
                         : "";
                 fullName = firstName.substring(0, 1).toUpperCase() + firstName.substring(1) + " " +
-                        middleInitial + " " +
-                        lastName.substring(0, 1).toUpperCase() + lastName.substring(1);
+                           middleInitial + " " +
+                           lastName.substring(0, 1).toUpperCase() + lastName.substring(1);
             }
             conn.close();
         } catch (Exception ex) {
@@ -144,5 +144,4 @@ public class StudentDashboard extends JFrame implements ActionListener {
         }
         return fullName;
     }
-
 }

@@ -5,6 +5,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import com.toedter.calendar.JDateChooser;
+import java.sql.Date;
 
 public class buy_Items extends JFrame implements ActionListener {
     private final JComboBox<String> campusFilter;
@@ -78,18 +82,10 @@ public class buy_Items extends JFrame implements ActionListener {
 
         try {
             Connection conn = DBConnector.getConnection();
-            String sql = """
-                SELECT items.*,
-                       students.first_name,
-                       students.last_name
-                FROM items
-                JOIN students ON items.user_email = students.student_email
-            """;
+            String sql = "SELECT items.*, students.first_name, students.last_name FROM items JOIN students ON items.user_email = students.student_email";
             if (campusFilter != null && !campusFilter.equals("All")) {
                 sql += " WHERE campus = ?";
             }
-
-
 
             PreparedStatement pstmt = conn.prepareStatement(sql);
             if (campusFilter != null && !campusFilter.equals("All")) {
@@ -106,7 +102,6 @@ public class buy_Items extends JFrame implements ActionListener {
                 String campus = rs.getString("campus");
                 String sellerName = rs.getString("first_name") + " " + rs.getString("last_name");
                 JPanel itemContainer = createItemContainer(itemName, cost, quantity, imagePath, rs.getInt("id"), campus, sellerName);
-
 
                 gbc.gridx = column;
                 gbc.gridy = row;
@@ -129,7 +124,6 @@ public class buy_Items extends JFrame implements ActionListener {
         itemPanel.revalidate();
         itemPanel.repaint();
     }
-
 
     private JPanel createItemContainer(String itemName, double cost, int quantity, String imagePath, int itemId, String campus, String sellerName) {
         JPanel container = new JPanel();
@@ -208,9 +202,6 @@ public class buy_Items extends JFrame implements ActionListener {
         return container;
     }
 
-
-
-
     private JButton createButton(String text, int itemId, JTextField quantityField) {
         JButton button = new JButton(text);
         button.setFont(new Font("Arial", Font.BOLD, 24));
@@ -233,49 +224,99 @@ public class buy_Items extends JFrame implements ActionListener {
                 throw new IllegalArgumentException("Quantity must be greater than zero.");
             }
 
-            Connection conn = DBConnector.getConnection();
-            String checkStockSql = "SELECT quantity FROM items WHERE id = ?";
-            PreparedStatement checkStockStmt = conn.prepareStatement(checkStockSql);
-            checkStockStmt.setInt(1, itemId);
-            ResultSet stockResult = checkStockStmt.executeQuery();
-
-            if (stockResult.next()) {
-                int availableStock = stockResult.getInt("quantity");
-                if (availableStock < quantity) {
-                    JOptionPane.showMessageDialog(this, "Not enough stock available.");
-                    conn.close();
-                    return;
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "Item not found.");
-                conn.close();
+            LocalDate selectedPickupDate = showCalendarDialog();
+            if (selectedPickupDate == null) {
                 return;
             }
 
-            String updateStockSql = "UPDATE items SET quantity = quantity - ? WHERE id = ?";
-            PreparedStatement updateStockStmt = conn.prepareStatement(updateStockSql);
-            updateStockStmt.setInt(1, quantity);
-            updateStockStmt.setInt(2, itemId);
-            int rowsAffected = updateStockStmt.executeUpdate();
+            String[] paymentOptions = {"Cash", "E-Wallet"};
+            int paymentChoice = JOptionPane.showOptionDialog(
+                    this,
+                    "Select Payment Method",
+                    "Payment Method",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    paymentOptions,
+                    paymentOptions[0]
+            );
 
-            if (rowsAffected > 0) {
-                String insertOrderSql = """
-                INSERT INTO orders (item_id, buyer_email, quantity, created_at)
-                VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-                """;
-                PreparedStatement insertOrderStmt = conn.prepareStatement(insertOrderSql);
+            if (paymentChoice == -1) {
+                return;
+            }
+
+            Connection conn = DBConnector.getConnection();
+            conn.setAutoCommit(false);
+
+            try {
+                String checkStockSql = "SELECT quantity, cost, user_email FROM items WHERE id = ?";
+                PreparedStatement checkStockStmt = conn.prepareStatement(checkStockSql);
+                checkStockStmt.setInt(1, itemId);
+                ResultSet stockResult = checkStockStmt.executeQuery();
+
+                if (!stockResult.next()) {
+                    JOptionPane.showMessageDialog(this, "Item not found.");
+                    conn.rollback();
+                    conn.close();
+                    return;
+                }
+
+                int availableStock = stockResult.getInt("quantity");
+                double itemCost = stockResult.getDouble("cost");
+                String sellerEmail = stockResult.getString("user_email");
+
+                if (availableStock < quantity) {
+                    JOptionPane.showMessageDialog(this, "Not enough stock available.");
+                    conn.rollback();
+                    conn.close();
+                    return;
+                }
+
+                String insertOrderSql = "INSERT INTO orders (item_id, buyer_email, quantity, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
+                PreparedStatement insertOrderStmt = conn.prepareStatement(insertOrderSql, Statement.RETURN_GENERATED_KEYS);
                 insertOrderStmt.setInt(1, itemId);
                 insertOrderStmt.setString(2, userEmail);
                 insertOrderStmt.setInt(3, quantity);
                 insertOrderStmt.executeUpdate();
 
-                JOptionPane.showMessageDialog(this, "Item bought successfully!");
-                loadItems((String) campusFilter.getSelectedItem());
-            } else {
-                JOptionPane.showMessageDialog(this, "Failed to buy item. Please try again.");
+                ResultSet generatedKeys = insertOrderStmt.getGeneratedKeys();
+                int orderId = -1;
+                if (generatedKeys.next()) {
+                    orderId = generatedKeys.getInt(1);
+                }
+
+                boolean paymentSuccessful;
+
+                if (paymentChoice == 0) {
+                    paymentSuccessful = handleCashPayment(conn, orderId, selectedPickupDate);
+                } else {
+                    paymentSuccessful = handleEWalletPayment(conn, orderId, selectedPickupDate, itemCost, sellerEmail, quantity);
+                }
+
+                if (paymentSuccessful) {
+                    String updateStockSql = "UPDATE items SET quantity = quantity - ? WHERE id = ?";
+                    PreparedStatement updateStockStmt = conn.prepareStatement(updateStockSql);
+                    updateStockStmt.setInt(1, quantity);
+                    updateStockStmt.setInt(2, itemId);
+                    updateStockStmt.executeUpdate();
+
+                    conn.commit();
+                    loadItems((String) campusFilter.getSelectedItem());
+                    JOptionPane.showMessageDialog(this, "Order placed successfully!");
+                } else {
+                    conn.rollback();
+                    JOptionPane.showMessageDialog(this, "Payment was not successful. Order canceled.");
+                }
+
+            } catch (Exception e) {
+                conn.rollback();
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error processing order: " + e.getMessage());
+            } finally {
+                conn.setAutoCommit(true);
+                conn.close();
             }
 
-            conn.close();
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Please input a valid number.");
         } catch (SQLException | ClassNotFoundException e) {
@@ -284,6 +325,134 @@ public class buy_Items extends JFrame implements ActionListener {
         }
     }
 
+    private LocalDate showCalendarDialog() {
+        JDateChooser dateChooser = new JDateChooser();
+        dateChooser.setMinSelectableDate(new java.sql.Date(System.currentTimeMillis()));
+        dateChooser.setMaxSelectableDate(new java.sql.Date(System.currentTimeMillis() + (30L * 24 * 60 * 60 * 1000)));
+
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                dateChooser,
+                "Select Pickup Date",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (result == JOptionPane.OK_OPTION) {
+            java.util.Date selectedDate = dateChooser.getDate();
+
+            if (selectedDate != null) {
+                return selectedDate.toInstant()
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate();
+            }
+        }
+        return null;
+    }
+
+    private boolean handleCashPayment(Connection conn, int orderId, LocalDate pickupDate) throws SQLException {
+        insertOrderDetails(conn, orderId, pickupDate, "Cash", "Unpaid", null, null);
+        JOptionPane.showMessageDialog(this, "Order placed successfully (Unpaid)!");
+        return true;
+    }
+
+    private boolean handleEWalletPayment(Connection conn, int orderId, LocalDate pickupDate,
+                                         double itemCost, String sellerEmail, int quantity) throws SQLException {
+        String[] ewalletProviders = {"GCash", "Maya", "PayPal"};
+        String selectedProvider = (String) JOptionPane.showInputDialog(
+                this,
+                "Select E-Wallet Provider",
+                "E-Wallet Payment",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                ewalletProviders,
+                ewalletProviders[0]
+        );
+
+        if (selectedProvider == null) {
+            return false;
+        }
+
+        String ewalletNumber = "";
+        boolean validPhoneNumber = false;
+
+        while (!validPhoneNumber) {
+            ewalletNumber = JOptionPane.showInputDialog(this, "Enter " + selectedProvider + " Number:");
+
+            if (ewalletNumber == null || ewalletNumber.trim().isEmpty()) {
+                return false;
+            }
+
+            String phoneRegex = "^09\\d{9}$";
+
+            if (!ewalletNumber.matches(phoneRegex)) {
+                JOptionPane.showMessageDialog(this, "Please enter a valid 11-digit number starting with 09.");
+            } else {
+                validPhoneNumber = true;
+            }
+        }
+
+        String billMessage = String.format(
+                """
+                        Bill Details:
+                        Item Cost: PHP %.2f
+                        Quantity: %d
+                        Total: PHP %.2f
+                        Seller Email: %s
+                        E-Wallet: %s (%s)""",
+                itemCost, quantity, itemCost * quantity, sellerEmail,
+                selectedProvider, ewalletNumber
+        );
+
+        int payNowResult = JOptionPane.showConfirmDialog(
+                this,
+                billMessage,
+                "Confirm Payment",
+                JOptionPane.OK_CANCEL_OPTION
+        );
+
+        if (payNowResult == JOptionPane.OK_OPTION) {
+            insertOrderDetails(
+                    conn,
+                    orderId,
+                    pickupDate,
+                    "E-Wallet",
+                    "Paid",
+                    selectedProvider,
+                    ewalletNumber
+            );
+
+            JOptionPane.showMessageDialog(this, "Payment Successful!");
+            return true;
+        } else {
+            insertOrderDetails(
+                    conn,
+                    orderId,
+                    pickupDate,
+                    "E-Wallet",
+                    "Unpaid",
+                    selectedProvider,
+                    ewalletNumber
+            );
+
+            JOptionPane.showMessageDialog(this, "Payment Cancelled. Order remains unpaid.");
+            return false;
+        }
+    }
+
+    private void insertOrderDetails(Connection conn, int orderId, LocalDate pickupDate,
+                                    String paymentMethod, String paymentStatus,
+                                    String ewalletProvider, String ewalletNumber) throws SQLException {
+        String insertDetailsSql = "INSERT INTO order_details (order_id, pickup_date, payment_method, payment_status, e_wallet_provider, e_wallet_number) VALUES (?, ?, ?, ?, ?, ?)";
+        PreparedStatement pstmt = conn.prepareStatement(insertDetailsSql);
+        pstmt.setInt(1, orderId);
+        pstmt.setDate(2, Date.valueOf(pickupDate));
+        pstmt.setString(3, paymentMethod);
+        pstmt.setString(4, paymentStatus);
+        pstmt.setString(5, ewalletProvider);
+        pstmt.setString(6, ewalletNumber);
+        pstmt.executeUpdate();
+    }
 
     private void reportUser(String reportedUserEmail) {
         JTextArea commentArea = new JTextArea(10, 30);
@@ -323,10 +492,7 @@ public class buy_Items extends JFrame implements ActionListener {
 
                         if (rs.next()) {
                             int reportedUserId = rs.getInt("id");
-                            String insertReportSql = """
-                                                    INSERT INTO reports (reported_user_id, reporter_user_id, comment)
-                                                    VALUES (?, ?, ?);
-                                                    """;
+                            String insertReportSql = "INSERT INTO reports (reported_user_id, reporter_user_id, comment) VALUES (?, ?, ?)";
                             pstmt = conn.prepareStatement(insertReportSql);
                             pstmt.setInt(1, reportedUserId);
                             pstmt.setInt(2, reporterUserId);
@@ -363,15 +529,12 @@ public class buy_Items extends JFrame implements ActionListener {
 
         @Override
         public void insertString(int offset, String str, javax.swing.text.AttributeSet attr) throws BadLocationException {
-            if (str == null) {
-                return;
-            }
+            if (str == null) return;
             if ((getLength() + str.length()) <= limit) {
                 super.insertString(offset, str, attr);
             }
         }
     }
-
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -382,7 +545,6 @@ public class buy_Items extends JFrame implements ActionListener {
             new StudentDashboard(getUserEmail());
         }
     }
-
 
     public String getUserEmail() {
         return userEmail;

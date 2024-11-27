@@ -162,11 +162,24 @@ public class Setting extends JFrame implements ActionListener {
             String confirmPassword = new String(confirmPasswordField.getPassword());
             String selectedCampus = (String) campusComboBox.getSelectedItem();
 
-            if (!newPassword.isEmpty() || !confirmPassword.isEmpty()) {
-                if (!newPassword.equals(confirmPassword)) {
-                    JOptionPane.showMessageDialog(this, "Passwords do not match.");
-                    return;
-                }
+            int minPasswordLength = 8;
+            int maxPasswordLength = 16;
+
+            if (newPassword.isEmpty() || confirmPassword.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please fill in both password fields.");
+                return;
+            }
+
+            // Password length validation
+            if (newPassword.length() < minPasswordLength || newPassword.length() > maxPasswordLength) {
+                JOptionPane.showMessageDialog(this, "Password must be between " + minPasswordLength + " and " + maxPasswordLength + " characters.");
+                return;
+            }
+
+            // Confirm passwords match
+            if (!newPassword.equals(confirmPassword)) {
+                JOptionPane.showMessageDialog(this, "Passwords do not match.");
+                return;
             }
 
             try (Connection conn = DBConnector.getConnection()) {
@@ -174,21 +187,15 @@ public class Setting extends JFrame implements ActionListener {
 
                 String updateSQL = "UPDATE students SET tip_branch = ?";
 
-                if (!newPassword.isEmpty()) {
-                    updateSQL += ", password = ?";
-                }
+                updateSQL += ", password = ?";
 
                 updateSQL += " WHERE student_email = ?";
 
                 PreparedStatement pstmt = conn.prepareStatement(updateSQL);
                 pstmt.setString(1, selectedCampus);
 
-                if (!newPassword.isEmpty()) {
-                    pstmt.setString(2, newPassword);
-                    pstmt.setString(3, userEmail);
-                } else {
-                    pstmt.setString(2, userEmail);
-                }
+                pstmt.setString(2, newPassword);
+                pstmt.setString(3, userEmail);
 
                 pstmt.executeUpdate();
 
