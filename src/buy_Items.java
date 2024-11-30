@@ -224,6 +224,35 @@ public class buy_Items extends JFrame implements ActionListener {
                 throw new IllegalArgumentException("Quantity must be greater than zero.");
             }
 
+            Connection conn = DBConnector.getConnection();
+            try {
+                String checkStockSql = "SELECT quantity FROM items WHERE id = ?";
+                PreparedStatement checkStockStmt = conn.prepareStatement(checkStockSql);
+                checkStockStmt.setInt(1, itemId);
+                ResultSet stockResult = checkStockStmt.executeQuery();
+
+                if (!stockResult.next()) {
+                    JOptionPane.showMessageDialog(this, "Item not found.");
+                    conn.close();
+                    return;
+                }
+
+                int availableStock = stockResult.getInt("quantity");
+
+                if (availableStock < quantity) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Not enough stock available. Requested: " + quantity + ", Available: " + availableStock,
+                            "Stock Error",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                    conn.close();
+                    return;
+                }
+            } finally {
+                conn.close();
+            }
+
             LocalDate selectedPickupDate = showCalendarDialog();
             if (selectedPickupDate == null) {
                 return;
@@ -245,32 +274,18 @@ public class buy_Items extends JFrame implements ActionListener {
                 return;
             }
 
-            Connection conn = DBConnector.getConnection();
+            conn = DBConnector.getConnection();
             conn.setAutoCommit(false);
 
             try {
-                String checkStockSql = "SELECT quantity, cost, user_email FROM items WHERE id = ?";
+                String checkStockSql = "SELECT cost, user_email FROM items WHERE id = ?";
                 PreparedStatement checkStockStmt = conn.prepareStatement(checkStockSql);
                 checkStockStmt.setInt(1, itemId);
                 ResultSet stockResult = checkStockStmt.executeQuery();
+                stockResult.next();
 
-                if (!stockResult.next()) {
-                    JOptionPane.showMessageDialog(this, "Item not found.");
-                    conn.rollback();
-                    conn.close();
-                    return;
-                }
-
-                int availableStock = stockResult.getInt("quantity");
                 double itemCost = stockResult.getDouble("cost");
                 String sellerEmail = stockResult.getString("user_email");
-
-                if (availableStock < quantity) {
-                    JOptionPane.showMessageDialog(this, "Not enough stock available.");
-                    conn.rollback();
-                    conn.close();
-                    return;
-                }
 
                 String insertOrderSql = "INSERT INTO orders (item_id, buyer_email, quantity, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
                 PreparedStatement insertOrderStmt = conn.prepareStatement(insertOrderSql, Statement.RETURN_GENERATED_KEYS);
@@ -324,6 +339,7 @@ public class buy_Items extends JFrame implements ActionListener {
             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
         }
     }
+
 
     private LocalDate showCalendarDialog() {
         JDateChooser dateChooser = new JDateChooser();
