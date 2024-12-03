@@ -221,7 +221,8 @@ public class buy_Items extends JFrame implements ActionListener {
         try {
             int quantity = Integer.parseInt(quantityField.getText());
             if (quantity <= 0) {
-                throw new IllegalArgumentException("Quantity must be greater than zero.");
+                JOptionPane.showMessageDialog(this, "Quantity must be greater than zero.");
+                return;
             }
 
             Connection conn = DBConnector.getConnection();
