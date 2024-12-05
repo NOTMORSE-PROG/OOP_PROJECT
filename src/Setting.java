@@ -170,13 +170,11 @@ public class Setting extends JFrame implements ActionListener {
                 return;
             }
 
-            // Password length validation
             if (newPassword.length() < minPasswordLength || newPassword.length() > maxPasswordLength) {
                 JOptionPane.showMessageDialog(this, "Password must be between " + minPasswordLength + " and " + maxPasswordLength + " characters.");
                 return;
             }
 
-            // Confirm passwords match
             if (!newPassword.equals(confirmPassword)) {
                 JOptionPane.showMessageDialog(this, "Passwords do not match.");
                 return;
@@ -273,7 +271,7 @@ public class Setting extends JFrame implements ActionListener {
 
                 } catch (SQLException | ClassNotFoundException ex) {
                     ex.printStackTrace();
-                    JOptionPane.showMessageDialog(this, "Unable to delete account: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(this, "Unable to delete account: You have unresolved Reports from Admin");
                 }
             }
         } else if (e.getSource() == goBackButton) {
