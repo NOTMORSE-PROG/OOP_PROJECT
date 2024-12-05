@@ -97,28 +97,30 @@ public class loginPage extends JFrame implements ActionListener {
         if (e.getSource() == loginButton) {
             String email = emailField.getText().trim();
             String password = new String(passwordField.getPassword()).trim();
-
             if (email.equals("admin") && password.equals("admin")) {
                 JOptionPane.showMessageDialog(this, "Admin login successful!");
                 this.dispose();
                 new AdminDashboard();
                 return;
             }
-
             try {
                 Connection conn = DBConnector.getConnection();
-                String sql = "SELECT * FROM students WHERE student_email = ? AND password = ?";
+                String sql = "SELECT * FROM students WHERE student_email = ?";
                 PreparedStatement pstmt = conn.prepareStatement(sql);
                 pstmt.setString(1, email);
-                pstmt.setString(2, password);
                 ResultSet rs = pstmt.executeQuery();
 
                 if (rs.next()) {
-                    JOptionPane.showMessageDialog(this, "Login successful!");
-                    new StudentDashboard(email);
-                    dispose();
+                    String storedPassword = rs.getString("password");
+                    if (storedPassword.equals(password)) {
+                        JOptionPane.showMessageDialog(this, "Login successful!");
+                        new StudentDashboard(email);
+                        dispose();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Wrong password. Please try again.");
+                    }
                 } else {
-                    JOptionPane.showMessageDialog(this, "Invalid email or password. Please try again.");
+                    JOptionPane.showMessageDialog(this, "User not found. Please check your email.");
                 }
                 conn.close();
             } catch (Exception ex) {
